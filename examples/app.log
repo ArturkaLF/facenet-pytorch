@@ -746,3 +746,18 @@ Cropping: 0
 03/13/2020 08:06:44 PM Training
 03/13/2020 08:06:45 PM Train |     1/1673 | loss:    9.8405 | fps:  214.7482 | acc:    0.0000   
 03/13/2020 08:08:44 PM Train |   419/1673 | loss:    7.8400 | fps:  705.8316 | acc:    0.0309   
+03/16/2020 03:23:56 PM 
+------------ Options -------------
+data-dir: ../../datasets/CASIA-WebFace
+batch_size: 200
+epochs: 5
+training_name: test
+Opt: 1
+Opt_level: O2
+Cropping: 0
+-------------- End ---------------
+03/16/2020 03:24:04 PM Initial
+03/16/2020 03:24:05 PM Valid |     1/419  | loss:    9.8816 | fps:   77.2998 | acc:    0.0000   
+03/16/2020 03:24:12 PM Valid |   105/419  | loss:    9.8669 | fps: 3009.5920 | acc:    0.0001   
+03/16/2020 03:24:19 PM Valid |   209/419  | loss:    9.8676 | fps: 3014.0984 | acc:    0.0001   
+03/16/2020 03:24:26 PM Valid |   313/419  | loss:    9.8676 | fps: 3019.4973 | acc:    0.0001   

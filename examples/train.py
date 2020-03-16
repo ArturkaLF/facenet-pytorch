@@ -24,6 +24,8 @@ if __name__ == '__main__':
 
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
+    
+    
     formatter = logging.Formatter('%(asctime)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
     ch.setFormatter(formatter)
     logger.addHandler(ch)
