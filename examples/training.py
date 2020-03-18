@@ -23,7 +23,7 @@ class Logger(object):
             loss_str = 'loss: {:9.4f} | '.format(self.fn(loss, i))
             metric_str = ' | '.join('{}: {:9.4f}'.format(k, self.fn(v, i)) for k, v in metrics.items())
 
-            logging.basicConfig(filename='../../examples/app.log', level=logging.INFO, format='%(asctime)s %(message)s',
+            logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s %(message)s',
                                 datefmt='%m/%d/%Y %I:%M:%S %p')
 
             logging.info(track_str + loss_str + metric_str + '   ')

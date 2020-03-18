@@ -1,4 +1,4 @@
-from models.utils import training
+import training
 import configparser
 from facenet_pytorch import MTCNN, InceptionResnetV1, fixed_image_standardization
 
