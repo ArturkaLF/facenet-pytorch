@@ -131,15 +131,16 @@ if __name__ == '__main__':
         'acc': training.accuracy
     }
 
-    writer = SummaryWriter()
-    writer.iteration, writer.interval = 0, 10
+    # writer = SummaryWriter()
+    # writer.iteration, writer.interval = 0, 10
 
     logger.info('Initial')
     resnet.eval()
     training.pass_epoch(
         resnet, loss_fn, val_loader,
         batch_metrics=metrics, show_running=True, device=device,
-        writer=writer, opt=opt
+        # writer=writer,
+        opt=opt
     )
 
     print()
@@ -153,7 +154,8 @@ if __name__ == '__main__':
         training.pass_epoch(
             resnet, loss_fn, train_loader, optimizer, scheduler,
             batch_metrics=metrics, show_running=True, device=device,
-            writer=writer, opt=opt
+            # writer=writer,
+            opt=opt
         )
 
         logger.info("Validating")
@@ -161,7 +163,8 @@ if __name__ == '__main__':
         training.pass_epoch(
             resnet, loss_fn, val_loader,
             batch_metrics=metrics, show_running=True, device=device,
-            writer=writer, opt=opt
+            # writer=writer,
+            opt=opt
         )
         print()
 
@@ -180,7 +183,7 @@ if __name__ == '__main__':
         }
         torch.save(checkpoint, f"checkpoints/{training_name}.pt")
 
-    writer.close()
+    # writer.close()
     all_time = time.time() - start_time
     logger.info(f"All time: {all_time}")
     logger.info("Finish\n")
