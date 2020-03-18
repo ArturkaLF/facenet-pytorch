@@ -181,6 +181,6 @@ if __name__ == '__main__':
         torch.save(checkpoint, f"checkpoints/{training_name}.pt")
 
     writer.close()
-    t = time.time() - start_time
-    logger.info(f"All time: {t}")
+    all_time = time.time() - start_time
+    logger.info(f"All time: {all_time}")
     logger.info("Finish\n")
