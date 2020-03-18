@@ -1,8 +1,9 @@
 import configparser
 from facenet_pytorch import MTCNN, InceptionResnetV1, fixed_image_standardization
 
-# from models.utils import training
-import training
+from models.utils import training
+# from models.utils import
+# from
 
 import torch
 from torch.utils.data import DataLoader, SubsetRandomSampler
