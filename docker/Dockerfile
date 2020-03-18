@@ -1,20 +1,21 @@
-FROM pytorch/pytorch:1.4-cuda10.1-cudnn7-devel
+# Base image must at least have pytorch and CUDA installed.
+ARG BASE_IMAGE=nvcr.io/nvidia/pytorch:19.07-py3
+FROM $BASE_IMAGE
+ARG BASE_IMAGE
+RUN echo "Installing Apex on top of ${BASE_IMAGE}"
 
-MAINTAINER ArthurSh <sh.artur2000@gmail.com>
+# make sure we don't overwrite some existing directory called "apex"
+WORKDIR /tmp/unique_for_apex
 
-# make env python 3.6
-RUN conda create -n py36 python=3.6 anaconda
-RUN echo "source activate env" > ~/.bashrc
-ENV PATH /opt/conda/envs/py36/bin:$PATH
+# uninstall Apex if present, twice to make absolutely sure :)
+RUN pip uninstall -y apex || :
+RUN pip uninstall -y apex || :
 
-RUN conda install pytorch torchvision -c pytorch
+# SHA is something the user can touch to force recreation of this Docker layer,
+# and therefore force cloning of the latest version of Apex
+RUN SHA=ToUcHMe git clone https://github.com/NVIDIA/apex.git
+WORKDIR /tmp/unique_for_apex/apex
+RUN pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" .
+WORKDIR /workspace
 
-RUN pip list | grep torch
-
-RUN python -V
-
-
-# install nvidia apex for amp
-#RUN git clone https://github.com/NVIDIA/apex
-#WORKDIR /workspace/apex
-#RUN pip install -v --no-cache-dir ./
+RUN pip install facenet-pytorch
