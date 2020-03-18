@@ -1,8 +1,8 @@
 [Parameters]
-epochs = 5
+epochs = 2
 batch_size = 200
 training_name = test
-data_dir = ../../datasets/CASIA-WebFace
+data_dir = ../../data
 opt_enabled = 1
 opt_level = O2
 cropping = 0
