@@ -9,10 +9,12 @@ ENV PATH /opt/conda/envs/py36/bin:$PATH
 
 RUN conda install pytorch torchvision -c pytorch
 
-RUN pip uninstall -y apex || :
-RUN pip uninstall -y apex || :
+RUN pip list | grep torch
+
+RUN python -V
+
 
 # install nvidia apex for amp
-RUN git clone https://github.com/NVIDIA/apex
-WORKDIR /workspace/apex
-RUN pip install -v --no-cache-dir ./
+#RUN git clone https://github.com/NVIDIA/apex
+#WORKDIR /workspace/apex
+#RUN pip install -v --no-cache-dir ./
