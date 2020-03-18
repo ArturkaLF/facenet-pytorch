@@ -56,8 +56,9 @@ if __name__ == '__main__':
                 f"Cropping: {cropping}\n" +
                 '-------------- End ---------------')
 
-    # workers = 0 if os.name == 'nt' else 8
-    workers = 0
+    workers = 0 if os.name == 'nt' else 8
+    # for run with docker
+    # workers = 0
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     logger.info(f'Running on device: {device}')
@@ -169,6 +170,11 @@ if __name__ == '__main__':
             opt=opt
         )
         print()
+
+    try:
+        os.mkdir("checkpoints")
+    except FileExistsError:
+        logger.info("Dir checkpoints exists")
 
     # saving model's checkpoint
     if opt:
