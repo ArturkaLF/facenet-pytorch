@@ -15,4 +15,4 @@ RUN pip uninstall -y apex || :
 # install nvidia apex for amp
 RUN git clone https://github.com/NVIDIA/apex
 WORKDIR /workspace/apex
-RUN pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" .
+RUN pip install -v --no-cache-dir --global-option="--pyprof" --global-option="--cpp_ext" --global-option="--cuda_ext" ./
