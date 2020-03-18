@@ -17,23 +17,26 @@ if __name__ == '__main__':
 
     start_time = time.time()
 
-    logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+    # logging
+    logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s %(message)s',
+                        datefmt='%m/%d/%Y %I:%M:%S %p')
 
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
 
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
-    
-    
+
     formatter = logging.Formatter('%(asctime)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
+    # config
     CONFIG_PATH = '../models/utils/cfg.txt'
     config = configparser.ConfigParser()
     config.read(CONFIG_PATH)
 
+    # parameters
     data_dir = config.get("Parameters", "data_dir")
     batch_size = int(config.get("Parameters", "batch_size"))
     epochs = int(config.get("Parameters", "epochs"))
@@ -53,9 +56,8 @@ if __name__ == '__main__':
                 '-------------- End ---------------')
 
     workers = 0 if os.name == 'nt' else 8
-
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    print('Running on device: {}'.format(device))
+    logger.info(f'Running on device: {device}')
 
     dataset = datasets.ImageFolder(data_dir, transform=transforms.Resize((512, 512)))
 

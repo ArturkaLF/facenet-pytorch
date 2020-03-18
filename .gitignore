@@ -18,4 +18,3 @@ data/test_cropped
 examples/checkpoints/*
 /examples/apex/
 /examples/app.log
-
