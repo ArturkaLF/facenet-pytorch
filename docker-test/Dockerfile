@@ -21,7 +21,7 @@ RUN wget --quiet https://repo.continuum.io/miniconda/Miniconda$CONDA_PYTHON_VERS
 
 
 RUN conda install -y python=$PYTHON_VERSION && \
-    conda install -y pytorch torchvision cudatoolkit=10.0 -c pytorch && \
+    conda install -y pytorch torchvision cudatoolkit=10.1 -c pytorch && \
     conda install -y h5py scikit-learn matplotlib seaborn \
     pandas mkl-service cython && \
     conda clean -tipsy
