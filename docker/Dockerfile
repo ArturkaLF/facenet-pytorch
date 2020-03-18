@@ -7,6 +7,8 @@ RUN conda create -n py36 python=3.6 anaconda
 RUN echo "source activate env" > ~/.bashrc
 ENV PATH /opt/conda/envs/py36/bin:$PATH
 
+RUN conda install pytorch torchvision -c pytorch
+
 # install nvidia apex for amp
 RUN git clone https://github.com/NVIDIA/apex
 WORKDIR /workspace/apex
