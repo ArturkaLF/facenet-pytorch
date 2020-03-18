@@ -60,8 +60,6 @@ if __name__ == '__main__':
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     logger.info(f'Running on device: {device}')
 
-    print(os.listdir(data_dir))
-
     dataset = datasets.ImageFolder(data_dir, transform=transforms.Resize((512, 512)))
 
     # Cropping
