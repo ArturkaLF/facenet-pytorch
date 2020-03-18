@@ -33,7 +33,7 @@ if __name__ == '__main__':
     logger.addHandler(ch)
 
     # config
-    CONFIG_PATH = '../models/utils/cfg.txt'
+    CONFIG_PATH = 'cfg.txt'
     config = configparser.ConfigParser()
     config.read(CONFIG_PATH)
 
