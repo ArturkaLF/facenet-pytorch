@@ -4,8 +4,8 @@ MAINTAINER ArthurSh <sh.artur2000@gmail.com>
 
 # make env python 3.6
 RUN conda create -n py36 python=3.6 anaconda
-# RUN echo "source activate myenv" > ~/.bashrc
-# RUN conda activate py36
+RUN echo "source activate env" > ~/.bashrc
+ENV PATH /opt/conda/envs/py36/bin:$PATH
 
 # install nvidia apex for amp
 RUN git clone https://github.com/NVIDIA/apex
