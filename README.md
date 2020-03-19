@@ -95,17 +95,17 @@ By default, the above models will return 512-dimensional embeddings of images. T
 
 ### *Complete detection and recognition pipeline*
 
-Face recognition can be easily applied to raw images by first detecting faces using MTCNN before calculating embedding or probabilities using an Inception Resnet model. The example code at [examples/infer.ipynb](examples/infer.ipynb) provides a complete example pipeline utilizing datasets, dataloaders, and optional GPU processing.
+Face recognition can be easily applied to raw images by first detecting faces using MTCNN before calculating embedding or probabilities using an Inception Resnet model. The example code at [examples/infer.ipynb](examples/Notebooks/infer.ipynb) provides a complete example pipeline utilizing datasets, dataloaders, and optional GPU processing.
 
 ### *Face tracking in video streams*
 
-MTCNN can be used to build a face tracking system (using the `MTCNN.detect()` method). A full face tracking example can be found at [examples/face_tracking.ipynb](examples/face_tracking.ipynb).
+MTCNN can be used to build a face tracking system (using the `MTCNN.detect()` method). A full face tracking example can be found at [examples/face_tracking.ipynb](examples/Notebooks/face_tracking.ipynb).
 
-![](examples/tracked.gif)
+![](examples/Notebooks/tracked.gif)
 
 ### *Finetuning pretrained models with new data*
 
-In most situations, the best way to implement face recognition is to use the pretrained models directly, with either a clustering algorithm or a simple distance metrics to determine the identity of a face. However, if finetuning is required (i.e., if you want to select identity based on the model's output logits), an example can be found at [examples/finetune.ipynb](examples/finetune.ipynb).
+In most situations, the best way to implement face recognition is to use the pretrained models directly, with either a clustering algorithm or a simple distance metrics to determine the identity of a face. However, if finetuning is required (i.e., if you want to select identity based on the model's output logits), an example can be found at [examples/finetune.ipynb](examples/Notebooks/finetune.ipynb).
 
 ## Running with docker
 
