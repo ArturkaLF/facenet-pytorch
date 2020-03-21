@@ -1,197 +1,156 @@
-import training
-import configparser
-from facenet_pytorch import MTCNN, InceptionResnetV1, fixed_image_standardization
-
-import torch
-from torch.utils.data import DataLoader, SubsetRandomSampler
-from torch import optim
-from torch.optim.lr_scheduler import MultiStepLR
-from torch.utils.tensorboard import SummaryWriter
-from torchvision import datasets, transforms
-import numpy as np
-import os
-from apex import amp
-import time
 import logging
+import torch
+import numpy as np
+import time
+from apex import amp
 
-if __name__ == '__main__':
 
-    start_time = time.time()
+class Logger(object):
 
-    # logging
-    logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s %(message)s',
-                        datefmt='%m/%d/%Y %I:%M:%S %p')
+    def __init__(self, mode, length, calculate_mean=False):
+        self.mode = mode
+        self.length = length
+        self.calculate_mean = calculate_mean
+        if self.calculate_mean:
+            self.fn = lambda x, i: x / (i + 1)
+        else:
+            self.fn = lambda x, i: x
 
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
+    def __call__(self, loss, metrics, i):
 
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.INFO)
+        if i % (self.length//4) == 0:
+            track_str = '{} | {:5d}/{:<5d}| '.format(self.mode, i + 1, self.length)
+            loss_str = 'loss: {:9.4f} | '.format(self.fn(loss, i))
+            metric_str = ' | '.join('{}: {:9.4f}'.format(k, self.fn(v, i)) for k, v in metrics.items())
 
-    formatter = logging.Formatter('%(asctime)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
+            logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s %(message)s',
+                                datefmt='%m/%d/%Y %I:%M:%S %p')
 
-    # config
-    CONFIG_PATH = 'cfg.txt'
-    config = configparser.ConfigParser()
-    config.read(CONFIG_PATH)
+            logging.info(track_str + loss_str + metric_str + '   ')
 
-    # parameters
-    data_dir = config.get("Parameters", "data_dir")
-    batch_size = int(config.get("Parameters", "batch_size"))
-    epochs = int(config.get("Parameters", "epochs"))
-    training_name = config.get("Parameters", "training_name")
-    opt = int(config.get("Parameters", "opt_enabled"))
-    opt_level = config.get("Parameters", "opt_level")
-    cropping = int(config.get("Parameters", "cropping"))
 
-    logger.info('\n------------ Options -------------\n' +
-                f"data-dir: {data_dir}\n" +
-                f"batch_size: {batch_size}\n" +
-                f"epochs: {epochs}\n" +
-                f"training_name: {training_name}\n" +
-                f"Opt: {opt}\n" +
-                f"Opt_level: {opt_level}\n" +
-                f"Cropping: {cropping}\n" +
-                '-------------- End ---------------')
+class BatchTimer(object):
+    """Batch timing class.
+    Use this class for tracking training and testing time/rate per batch or per sample.
+    
+    Keyword Arguments:
+        rate {bool} -- Whether to report a rate (batches or samples per second) or a time (seconds
+            per batch or sample). (default: {True})
+        per_sample {bool} -- Whether to report times or rates per sample or per batch.
+            (default: {True})
+    """
 
-    workers = 0 if os.name == 'nt' else 8
-    # for run with docker
-    # workers = 0
+    def __init__(self, rate=True, per_sample=True):
+        self.start = time.time()
+        self.end = None
+        self.rate = rate
+        self.per_sample = per_sample
 
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    logger.info(f'Running on device: {device}')
+    def __call__(self, y_pred, y):
+        self.end = time.time()
+        elapsed = self.end - self.start
+        self.start = self.end
+        self.end = None
 
-    dataset = datasets.ImageFolder(data_dir, transform=transforms.Resize((512, 512)))
+        if self.per_sample:
+            elapsed /= len(y_pred)
+        if self.rate:
+            elapsed = 1 / elapsed
 
-    # Cropping
-    if cropping:
-        logger.info("Cropping")
-        mtcnn = MTCNN(
-            image_size=160, margin=0, min_face_size=20,
-            thresholds=[0.6, 0.7, 0.7], factor=0.709, post_process=True,
-            device=device
-        )
+        return torch.tensor(elapsed)
 
-        dataset.samples = [
-            (p, p.replace(data_dir, data_dir + '_cropped'))
-            for p, _ in dataset.samples
-        ]
 
-        loader = DataLoader(
-            dataset,
-            num_workers=workers,
-            batch_size=batch_size,
-            collate_fn=training.collate_pil
-        )
+def accuracy(logits, y):
+    _, preds = torch.max(logits, 1)
+    return (preds == y).float().mean()
 
-        for i, (x, y) in enumerate(loader):
-            mtcnn(x, save_path=y)
-            print('Batch {} of {}'.format(i + 1, len(loader)))
 
-    resnet = InceptionResnetV1(
-        classify=True,
-        num_classes=len(dataset.class_to_idx),
-        pretrained='vggface2'
-    ).to(device)
+def pass_epoch(
+        model, loss_fn, loader, optimizer=None, scheduler=None,
+        batch_metrics={'time': BatchTimer()}, show_running=True,
+        device='cpu', writer=None, opt=0
+):
+    """Train or evaluate over a data epoch.
+    
+    Arguments:
+        model {torch.nn.Module} -- Pytorch model.
+        loss_fn {callable} -- A function to compute (scalar) loss.
+        loader {torch.utils.data.DataLoader} -- A pytorch data loader.
+    
+    Keyword Arguments:
+        optimizer {torch.optim.Optimizer} -- A pytorch optimizer.
+        scheduler {torch.optim.lr_scheduler._LRScheduler} -- LR scheduler (default: {None})
+        batch_metrics {dict} -- Dictionary of metric functions to call on each batch. The default
+            is a simple timer. A progressive average of these metrics, along with the average
+            loss, is printed every batch. (default: {{'time': iter_timer()}})
+        show_running {bool} -- Whether or not to print losses and metrics for the current batch
+            or rolling averages. (default: {False})
+        device {str or torch.device} -- Device for pytorch to use. (default: {'cpu'})
+        writer {torch.utils.tensorboard.SummaryWriter} -- Tensorboard SummaryWriter. (default: {None})
+    
+    Returns:
+        tuple(torch.Tensor, dict) -- A tuple of the average loss and a dictionary of average
+            metric values across the epoch.
+    """
 
-    optimizer = optim.Adam(resnet.parameters(), lr=0.001)
+    mode = 'Train' if model.training else 'Valid'
+    logger = Logger(mode, length=len(loader), calculate_mean=show_running)
+    loss = 0
+    metrics = {}
 
-    if opt:
-        model, optimizer = amp.initialize(resnet, optimizer, opt_level=opt_level)
+    for i_batch, (x, y) in enumerate(loader):
+        x = x.to(device)
+        y = y.to(device)
+        y_pred = model(x)
+        loss_batch = loss_fn(y_pred, y)
 
-    scheduler = MultiStepLR(optimizer, [5, 10])
+        if model.training:
 
-    trans = transforms.Compose([
-        np.float32,
-        transforms.ToTensor(),
-        fixed_image_standardization
-    ])
+            if opt:
+                with amp.scale_loss(loss_batch, optimizer) as scaled_loss:
+                    scaled_loss.backward()
+            else:
+                loss_batch.backward()
 
-    dataset = datasets.ImageFolder(data_dir + '_cropped', transform=trans)
-    img_inds = np.arange(len(dataset))
-    np.random.shuffle(img_inds)
-    train_inds = img_inds[:int(0.8 * len(img_inds))]
-    val_inds = img_inds[int(0.8 * len(img_inds)):]
+            optimizer.step()
+            optimizer.zero_grad()
 
-    train_loader = DataLoader(
-        dataset,
-        num_workers=workers,
-        batch_size=batch_size,
-        sampler=SubsetRandomSampler(train_inds)
-    )
-    val_loader = DataLoader(
-        dataset,
-        num_workers=workers,
-        batch_size=batch_size,
-        sampler=SubsetRandomSampler(val_inds)
-    )
+        metrics_batch = {}
+        for metric_name, metric_fn in batch_metrics.items():
+            metrics_batch[metric_name] = metric_fn(y_pred, y).detach().cpu()
+            metrics[metric_name] = metrics.get(metric_name, 0) + metrics_batch[metric_name]
 
-    loss_fn = torch.nn.CrossEntropyLoss()
-    metrics = {
-        'fps': training.BatchTimer(),
-        'acc': training.accuracy
-    }
+        if writer is not None and model.training:
+            if writer.iteration % writer.interval == 0:
+                writer.add_scalars('loss', {mode: loss_batch.detach().cpu()}, writer.iteration)
+                for metric_name, metric_batch in metrics_batch.items():
+                    writer.add_scalars(metric_name, {mode: metric_batch}, writer.iteration)
+            writer.iteration += 1
 
-    # writer = SummaryWriter()
-    # writer.iteration, writer.interval = 0, 10
+        loss_batch = loss_batch.detach().cpu()
+        loss += loss_batch
+        if show_running:
+            logger(loss, metrics, i_batch)
+        else:
+            logger(loss_batch, metrics_batch, i_batch)
 
-    logger.info('Initial')
-    resnet.eval()
-    training.pass_epoch(
-        resnet, loss_fn, val_loader,
-        batch_metrics=metrics, show_running=True, device=device,
-        # writer=writer,
-        opt=opt
-    )
+    if model.training and scheduler is not None:
+        scheduler.step()
 
-    print()
-    logger.info("Start training")
+    loss = loss / (i_batch + 1)
+    metrics = {k: v / (i_batch + 1) for k, v in metrics.items()}
 
-    for epoch in range(epochs):
-        logger.info('Epoch {}/{}'.format(epoch + 1, epochs))
+    if writer is not None and not model.training:
+        writer.add_scalars('loss', {mode: loss.detach()}, writer.iteration)
+        for metric_name, metric in metrics.items():
+            writer.add_scalars(metric_name, {mode: metric})
 
-        resnet.train()
-        logger.info("Training")
-        training.pass_epoch(
-            resnet, loss_fn, train_loader, optimizer, scheduler,
-            batch_metrics=metrics, show_running=True, device=device,
-            # writer=writer,
-            opt=opt
-        )
+    return loss, metrics
 
-        logger.info("Validating")
-        resnet.eval()
-        training.pass_epoch(
-            resnet, loss_fn, val_loader,
-            batch_metrics=metrics, show_running=True, device=device,
-            # writer=writer,
-            opt=opt
-        )
-        print()
 
-    try:
-        os.mkdir("checkpoints")
-    except FileExistsError:
-        logger.info("Dir checkpoints exists")
-
-    # saving model's checkpoint
-    if opt:
-        checkpoint = {
-            'model': resnet.state_dict(),
-            'optimizer': optimizer.state_dict(),
-            'amp': amp.state_dict()
-        }
-        torch.save(checkpoint, f"checkpoints/opt_{training_name}.pt")
-    else:
-        checkpoint = {
-            'model': resnet.state_dict(),
-            'optimizer': optimizer.state_dict(),
-        }
-        torch.save(checkpoint, f"checkpoints/{training_name}.pt")
-
-    # writer.close()
-    all_time = time.time() - start_time
-    logger.info(f"All time: {all_time}")
-    logger.info("Finish\n")
+def collate_pil(x):
+    out_x, out_y = [], []
+    for xx, yy in x:
+        out_x.append(xx)
+        out_y.append(yy)
+    return out_x, out_y
