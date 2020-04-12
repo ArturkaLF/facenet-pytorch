@@ -13,6 +13,8 @@ from apex import amp
 import time
 import logging
 
+
+import pytorch_image_folder_with_file_paths
 import training
 
 if __name__ == '__main__':
@@ -79,6 +81,7 @@ if __name__ == '__main__':
 
     logger.warning(f'Running on device: {device} (no CUDA device)') if device == 'cpu' else \
         logger.info(f'Running on device: {device}')
+    logger.info(f'Running on CUDA: {torch.cuda.is_available()}')
 
     dataset = datasets.ImageFolder(data_dir, transform=transforms.Resize((512, 512)))
 
@@ -127,6 +130,10 @@ if __name__ == '__main__':
     ])
 
     dataset = datasets.ImageFolder(data_dir + '_cropped', transform=trans)
+
+    # test with new image folder 
+    # dataset = pytorch_image_folder_with_file_paths.ImageFolderWithPaths(data_dir + '_cropped', transform=trans)
+
     img_inds = np.arange(len(dataset))
     np.random.shuffle(img_inds)
     train_inds = img_inds[:int(0.8 * len(img_inds))]

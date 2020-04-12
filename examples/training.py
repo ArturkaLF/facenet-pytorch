@@ -102,7 +102,6 @@ def pass_epoch(
         x = x.to(device)
         y = y.to(device)
         y_pred = model(x)
-        print()
         loss_batch = loss_fn(y_pred, y)
 
         if model.training:
@@ -127,6 +126,15 @@ def pass_epoch(
                 for metric_name, metric_batch in metrics_batch.items():
                     writer.add_scalars(metric_name, {mode: metric_batch}, writer.iteration)
             writer.iteration += 1
+
+
+        # чек тензоров предикта и реальных данных
+        print("y_pred: ", torch.max(y_pred, 1))
+        print("y: ", y)
+        print("acc:", accuracy(y_pred, y))
+
+
+
 
         loss_batch = loss_batch.detach().cpu()
         loss += loss_batch

@@ -1,8 +1,8 @@
 [Parameters]
 epochs = 2
-batch_size = 200
+batch_size = 10
 training_name = test_infer
-data_dir = ../../datasets/CASIA-WebFace
+data_dir = /home/arthur/work/datasets/test
 opt_enabled = 0
 opt_level = O2
 cropping = 0
@@ -15,4 +15,4 @@ factor_mtcnn = 0.709
 post_process_mtcnn = True
 
 device = cpu
-docker = True
+docker = False
