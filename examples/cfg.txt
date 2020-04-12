@@ -1,8 +1,18 @@
 [Parameters]
 epochs = 2
 batch_size = 200
-training_name = test
+training_name = test_infer
 data_dir = ../../data
-opt_enabled = 1
+opt_enabled = 0
 opt_level = O2
 cropping = 0
+
+image_size_mtcnn = 160
+margin_mtcnn = 0
+min_face_size_mtcnn = 20
+thresholds_mtcnn = 0.6 0.7 0.7
+factor_mtcnn = 0.709
+post_process_mtcnn = True
+
+device = cpu
+docker = True

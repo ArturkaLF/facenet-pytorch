@@ -168,6 +168,21 @@ Distance 1.2874517096861382e-06
 
 In order to re-run the conversion of tensorflow parameters into the pytorch model, ensure you clone this repo _with submodules_, as the davidsandberg/facenet repo is included as a submodule and parts of it are required for the conversion.
 
+## Docker
+
+### Build docker image 
+```shell script
+docker build -t image_facenet . 
+```
+### Run docker container
+```shell script
+docker run -ti --gpus all -v data:/data image_facenet
+```
+### Setting in cfg.txt
+```text
+docker = True
+```
+
 ## References
 
 1. David Sandberg's facenet repo: [https://github.com/davidsandberg/facenet](https://github.com/davidsandberg/facenet)
