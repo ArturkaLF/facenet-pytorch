@@ -108,7 +108,7 @@ if __name__ == '__main__':
 
         for i, (x, y) in enumerate(loader):
             mtcnn(x, save_path=y)
-            print('Batch {} of {}'.format(i + 1, len(loader)))
+            logger.info('Batch {} of {}'.format(i + 1, len(loader)))
 
     resnet = InceptionResnetV1(
         classify=True,
