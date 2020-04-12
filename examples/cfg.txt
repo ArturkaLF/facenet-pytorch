@@ -2,7 +2,7 @@
 epochs = 2
 batch_size = 200
 training_name = test_infer
-data_dir = ../../data
+data_dir = ../../datasets/CASIA-WebFace
 opt_enabled = 0
 opt_level = O2
 cropping = 0
