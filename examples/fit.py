@@ -131,7 +131,7 @@ if __name__ == '__main__':
 
     dataset = datasets.ImageFolder(data_dir + '_cropped', transform=trans)
 
-    # test with new image folder 
+    # test with new image folder
     # dataset = pytorch_image_folder_with_file_paths.ImageFolderWithPaths(data_dir + '_cropped', transform=trans)
 
     img_inds = np.arange(len(dataset))
