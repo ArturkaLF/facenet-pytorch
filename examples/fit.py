@@ -26,7 +26,7 @@ if __name__ == '__main__':
     training_name = config["Parameters"]["training_name"]
 
     # logging
-    logging.basicConfig(filename='training_name.log', level=logging.INFO, format='%(asctime)s %(message)s',
+    logging.basicConfig(filename=f"{training_name}.log", level=logging.INFO, format='%(asctime)s %(message)s',
                         datefmt='%m/%d/%Y %I:%M:%S %p')
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
@@ -129,9 +129,6 @@ if __name__ == '__main__':
 
     dataset = datasets.ImageFolder(data_dir + '_cropped', transform=trans)
     classes = [x for x in dataset.class_to_idx.keys()]
-
-    # for test
-    print(dataset.class_to_idx.keys())
 
     img_inds = np.arange(len(dataset))
     np.random.shuffle(img_inds)
