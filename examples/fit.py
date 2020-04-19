@@ -19,8 +19,14 @@ if __name__ == '__main__':
 
     start_time = time.time()
 
+    # config
+    CONFIG_PATH = 'cfg.txt'
+    config = configparser.ConfigParser()
+    config.read(CONFIG_PATH)
+    training_name = config["Parameters"]["training_name"]
+
     # logging
-    logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s %(message)s',
+    logging.basicConfig(filename='training_name.log', level=logging.INFO, format='%(asctime)s %(message)s',
                         datefmt='%m/%d/%Y %I:%M:%S %p')
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
@@ -31,16 +37,10 @@ if __name__ == '__main__':
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
-    # config
-    CONFIG_PATH = 'cfg.txt'
-    config = configparser.ConfigParser()
-    config.read(CONFIG_PATH)
-
     # parameters
     data_dir = config["Parameters"]["data_dir"]
     batch_size = int(config["Parameters"]["batch_size"])
     epochs = int(config["Parameters"]["epochs"])
-    training_name = config["Parameters"]["training_name"]
     opt = int(config["Parameters"]["opt_enabled"])
     opt_level = config["Parameters"]["opt_level"]
     cropping = int(config["Parameters"]["cropping"])
