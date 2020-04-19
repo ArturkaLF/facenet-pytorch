@@ -3,6 +3,7 @@ import torch
 import numpy as np
 import time
 from apex import amp
+from matplotlib import pyplot as plt
 
 
 class Logger(object):
@@ -18,7 +19,7 @@ class Logger(object):
 
     def __call__(self, loss, metrics, i):
 
-        if i % (self.length//4) == 0:
+        if i % (self.length // 4) == 0:
             track_str = '{} | {:5d}/{:<5d}| '.format(self.mode, i + 1, self.length)
             loss_str = 'loss: {:9.4f} | '.format(self.fn(loss, i))
             metric_str = ' | '.join('{}: {:9.4f}'.format(k, self.fn(v, i)) for k, v in metrics.items())
@@ -68,7 +69,7 @@ def accuracy(logits, y):
 def pass_epoch(
         model, loss_fn, loader, optimizer=None, scheduler=None,
         batch_metrics={'time': BatchTimer()}, show_running=True,
-        device='cpu', writer=None, opt=0
+        device='cpu', writer=None, opt=0, classes=[], epoch=0
 ):
     """Train or evaluate over a data epoch.
     
@@ -127,14 +128,14 @@ def pass_epoch(
                     writer.add_scalars(metric_name, {mode: metric_batch}, writer.iteration)
             writer.iteration += 1
 
-
-        # чек тензоров предикта и реальных данных
-        print("y_pred: ", torch.max(y_pred, 1))
-        print("y: ", y)
-        print("acc:", accuracy(y_pred, y))
-
-
-
+        # Check error in classification
+        EPOCHS_FOR_CHECK = 8
+        ACC_FOR_CHECK = 0.95
+        if 1.0 > accuracy(y_pred, y) > ACC_FOR_CHECK and not model.training and epoch > EPOCHS_FOR_CHECK:
+            for i in range(int(y.size()[0])):
+                if torch.max(y_pred, 1)[1][i] != y[i]:
+                    imshow(img=x[i].cpu(), y_pred=classes[int(torch.max(y_pred, 1)[1][i])], y=classes[int(y[i])])
+                    print("Add a new image with error")
 
         loss_batch = loss_batch.detach().cpu()
         loss += loss_batch
@@ -163,3 +164,11 @@ def collate_pil(x):
         out_x.append(xx)
         out_y.append(yy)
     return out_x, out_y
+
+
+def imshow(img, y_pred, y):
+    img = img / 2 + 0.5
+    npigm = img.numpy()
+    plt.imshow(np.transpose(npigm, (1, 2, 0)))
+    plt.title(f"Y:{y} -- Y_pred:{y_pred}")
+    plt.savefig(f"../Logs/Y:{y} -- Y_pred:{y_pred}.png")

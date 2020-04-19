@@ -13,8 +13,6 @@ from apex import amp
 import time
 import logging
 
-
-import pytorch_image_folder_with_file_paths
 import training
 
 if __name__ == '__main__':
@@ -108,7 +106,7 @@ if __name__ == '__main__':
 
         for i, (x, y) in enumerate(loader):
             mtcnn(x, save_path=y)
-            logger.info('Batch {} of {}'.format(i + 1, len(loader)))
+            logger.info(f'Batch {i + 1} of {len(loader)}')
 
     resnet = InceptionResnetV1(
         classify=True,
@@ -130,29 +128,34 @@ if __name__ == '__main__':
     ])
 
     dataset = datasets.ImageFolder(data_dir + '_cropped', transform=trans)
+    classes = [x for x in dataset.class_to_idx.keys()]
 
-    # test with new image folder
-    # dataset = pytorch_image_folder_with_file_paths.ImageFolderWithPaths(data_dir + '_cropped', transform=trans)
+    # for test
+    print(dataset.class_to_idx.keys())
 
     img_inds = np.arange(len(dataset))
     np.random.shuffle(img_inds)
     train_inds = img_inds[:int(0.8 * len(img_inds))]
     val_inds = img_inds[int(0.8 * len(img_inds)):]
 
+    subSet = SubsetRandomSampler(train_inds)
+
     train_loader = DataLoader(
         dataset,
         num_workers=workers,
+        pin_memory=True,
         batch_size=batch_size,
         sampler=SubsetRandomSampler(train_inds)
     )
     val_loader = DataLoader(
         dataset,
         num_workers=workers,
+        pin_memory=True,
         batch_size=batch_size,
         sampler=SubsetRandomSampler(val_inds)
     )
 
-    loss_fn = torch.nn.CrossEntropyLoss()
+    loss_fn = torch.nn.CrossEntropyLoss()  # 1) поменять loss   2) посмотреть функцию расстояния между картинками
     metrics = {
         'fps': training.BatchTimer(),
         'acc': training.accuracy
@@ -173,15 +176,14 @@ if __name__ == '__main__':
     logger.info("Start training")
 
     for epoch in range(epochs):
-        logger.info('Epoch {}/{}'.format(epoch + 1, epochs))
+        logger.info(f'Epoch {epoch + 1}/{epochs}')
 
         resnet.train()
         logger.info("Training")
         training.pass_epoch(
             resnet, loss_fn, train_loader, optimizer, scheduler,
             batch_metrics=metrics, show_running=True, device=device,
-            writer=writer,
-            opt=opt
+            writer=writer, opt=opt
         )
 
         logger.info("Validating")
@@ -189,10 +191,8 @@ if __name__ == '__main__':
         training.pass_epoch(
             resnet, loss_fn, val_loader,
             batch_metrics=metrics, show_running=True, device=device,
-            writer=writer,
-            opt=opt
+            writer=writer, opt=opt, classes=classes, epoch=epoch+1,
         )
-        print()
 
     try:
         os.mkdir("checkpoints")
