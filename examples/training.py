@@ -19,7 +19,7 @@ class Logger(object):
 
     def __call__(self, loss, metrics, i):
 
-        if i % (self.length // 2) == 0:
+        if i % (self.length // 4) == 0:
             track_str = '{} | {:5d}/{:<5d}| '.format(self.mode, i + 1, self.length)
             loss_str = 'loss: {:9.4f} | '.format(self.fn(loss, i))
             metric_str = ' | '.join('{}: {:9.4f}'.format(k, self.fn(v, i)) for k, v in metrics.items())
@@ -130,7 +130,7 @@ def pass_epoch(
 
         # Check error in classification
         EPOCHS_FOR_CHECK = 8
-        ACC_FOR_CHECK = 0.95
+        ACC_FOR_CHECK = 0.97
         if 1.0 > accuracy(y_pred, y) > ACC_FOR_CHECK and not model.training and epoch > EPOCHS_FOR_CHECK:
             for i in range(int(y.size()[0])):
                 if torch.max(y_pred, 1)[1][i] != y[i]:
@@ -171,4 +171,4 @@ def imshow(img, y_pred, y):
     npigm = img.numpy()
     plt.imshow(np.transpose(npigm, (1, 2, 0)))
     plt.title(f"Y:{y} -- Y_pred:{y_pred}")
-    plt.savefig(f"../Logs/Y:{y} -- Y_pred:{y_pred}.png")
+    plt.savefig(f"../Logs/imgs_test_2.1/Y:{y} -- Y_pred:{y_pred}.png")

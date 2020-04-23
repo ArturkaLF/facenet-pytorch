@@ -1,9 +1,9 @@
 [Parameters]
 epochs = 15
-batch_size = 100
-training_name = test_1.1
+batch_size = 200
+training_name = test_2.1
 data_dir = /home/arthur/work/datasets/test_infer
-opt_enabled = 0
+opt_enabled = 1
 opt_level = O2
 cropping = 0
 # 1 - True  0 - False
