@@ -1,18 +1,25 @@
 [Parameters]
-epochs = 20
-batch_size = 200
-training_name = test_with_new_check_error
-data_dir = /home/arthur/work/datasets/CASIA-WebFace
-opt_enabled = 1
+epochs = 15
+batch_size = 100
+training_name = test_1.1
+data_dir = /home/arthur/work/datasets/test_infer
+opt_enabled = 0
 opt_level = O2
 cropping = 0
+# 1 - True  0 - False
+pin_memory = 0
+# CrossEntropyLoss or MultiMarginLoss
+loss_func = CrossEntropyLoss
 
 image_size_mtcnn = 160
 margin_mtcnn = 0
 min_face_size_mtcnn = 20
 thresholds_mtcnn = 0.6 0.7 0.7
 factor_mtcnn = 0.709
-post_process_mtcnn = True
+# 1 - True  0 - False
+post_process_mtcnn = 1
 
+# cuda:0 or cpu
 device = cuda:0
-docker = False
+# 1 - True  0 - False
+docker = 0

@@ -19,7 +19,7 @@ class Logger(object):
 
     def __call__(self, loss, metrics, i):
 
-        if i % (self.length // 4) == 0:
+        if i % (self.length // 2) == 0:
             track_str = '{} | {:5d}/{:<5d}| '.format(self.mode, i + 1, self.length)
             loss_str = 'loss: {:9.4f} | '.format(self.fn(loss, i))
             metric_str = ' | '.join('{}: {:9.4f}'.format(k, self.fn(v, i)) for k, v in metrics.items())

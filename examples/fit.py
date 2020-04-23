@@ -26,7 +26,7 @@ if __name__ == '__main__':
     training_name = config["Parameters"]["training_name"]
 
     # logging
-    logging.basicConfig(filename=f"{training_name}.log", level=logging.INFO, format='%(asctime)s %(message)s',
+    logging.basicConfig(filename=f"../Logs/{training_name}.log", level=logging.INFO, format='%(asctime)s %(message)s',
                         datefmt='%m/%d/%Y %I:%M:%S %p')
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
@@ -44,6 +44,8 @@ if __name__ == '__main__':
     opt = int(config["Parameters"]["opt_enabled"])
     opt_level = config["Parameters"]["opt_level"]
     cropping = int(config["Parameters"]["cropping"])
+    loss_func = config["Parameters"]["loss_func"]
+    pin_memory = bool(int(config["Parameters"]["pin_memory"]))
 
     # parameters mtcnn
     image_size_mtcnn = int(config["Parameters"]["image_size_mtcnn"])
@@ -51,24 +53,26 @@ if __name__ == '__main__':
     min_face_size_mtcnn = int(config["Parameters"]["min_face_size_mtcnn"])
     thresholds_mtcnn = [float(x) for x in config["Parameters"]["thresholds_mtcnn"].split(" ")]
     factor_mtcnn = float(config["Parameters"]["factor_mtcnn"])
-    post_process_mtcnn = bool(config["Parameters"]["post_process_mtcnn"])
+    post_process_mtcnn = bool(int(config["Parameters"]["post_process_mtcnn"]))
 
     # cpu or cuda:0
     device = config["Parameters"]["device"]
 
     # docker
-    docker = bool(config["Parameters"]["docker"])
+    docker = bool(int(config["Parameters"]["docker"]))
 
     logger.info('\n------------ Options -------------\n'
-                f"data-dir: {data_dir}\n"
-                f"batch_size: {batch_size}\n"
-                f"epochs: {epochs}\n"
                 f"training_name: {training_name}\n"
+                f"data-dir: {data_dir}\n"
+                f"Cropping: {cropping}\n"
                 f"Opt: {opt}\n"
                 f"Opt_level: {opt_level}\n"
-                f"Cropping: {cropping}\n"
                 f"device: {device}\n"
                 f"docker: {docker}\n"
+                f"batch_size: {batch_size}\n"
+                f"epochs: {epochs}\n"
+                f"pin_memory: {pin_memory}\n"
+                f"loss_func: {loss_func}\n"
                 '-------------- End ---------------')
 
     if docker:
@@ -140,19 +144,23 @@ if __name__ == '__main__':
     train_loader = DataLoader(
         dataset,
         num_workers=workers,
-        pin_memory=True,
+        pin_memory=pin_memory,
         batch_size=batch_size,
         sampler=SubsetRandomSampler(train_inds)
     )
     val_loader = DataLoader(
         dataset,
         num_workers=workers,
-        pin_memory=True,
+        pin_memory=pin_memory,
         batch_size=batch_size,
         sampler=SubsetRandomSampler(val_inds)
     )
 
-    loss_fn = torch.nn.CrossEntropyLoss()  # 1) поменять loss   2) посмотреть функцию расстояния между картинками
+    if loss_func == "CrossEntropyLoss":
+        loss_fn = torch.nn.CrossEntropyLoss()
+    elif loss_func == "MultiMarginLoss":
+        loss_fn = torch.nn.MultiMarginLoss()
+
     metrics = {
         'fps': training.BatchTimer(),
         'acc': training.accuracy
@@ -188,7 +196,7 @@ if __name__ == '__main__':
         training.pass_epoch(
             resnet, loss_fn, val_loader,
             batch_metrics=metrics, show_running=True, device=device,
-            writer=writer, opt=opt, classes=classes, epoch=epoch+1,
+            writer=writer, opt=opt, classes=classes, epoch=epoch + 1,
         )
 
     try:
