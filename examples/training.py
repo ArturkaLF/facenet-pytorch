@@ -130,7 +130,7 @@ def pass_epoch(
 
         # Check error in classification
         EPOCHS_FOR_CHECK = 8
-        ACC_FOR_CHECK = 0.96
+        ACC_FOR_CHECK = 0.95
         if 1.0 > accuracy(y_pred, y) > ACC_FOR_CHECK and not model.training and epoch > EPOCHS_FOR_CHECK:
             for i in range(int(y.size()[0])):
                 if torch.max(y_pred, 1)[1][i] != y[i]:
@@ -171,4 +171,4 @@ def imshow(img, y_pred, y):
     npigm = img.numpy()
     plt.imshow(np.transpose(npigm, (1, 2, 0)))
     plt.title(f"Y:{y} -- Y_pred:{y_pred}")
-    plt.savefig(f"../Logs/imgs_test_4.1/Y:{y} -- Y_pred:{y_pred}.png")
+    plt.savefig(f"../Logs/imgs_test_5.1/Y:{y} -- Y_pred:{y_pred}.png")
