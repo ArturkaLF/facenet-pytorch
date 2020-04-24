@@ -171,4 +171,4 @@ def imshow(img, y_pred, y):
     npigm = img.numpy()
     plt.imshow(np.transpose(npigm, (1, 2, 0)))
     plt.title(f"Y:{y} -- Y_pred:{y_pred}")
-    plt.savefig(f"../Logs/imgs_test_3.1/Y:{y} -- Y_pred:{y_pred}.png")
+    plt.savefig(f"../Logs/imgs_test_4.1/Y:{y} -- Y_pred:{y_pred}.png")

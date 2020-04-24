@@ -1,15 +1,15 @@
 [Parameters]
 epochs = 15
 batch_size = 100
-training_name = test_3.1
-data_dir = /home/arthur/work/datasets/test_infer
+training_name = test_4.1
+data_dir = /home/arthur/work/datasets/CASIA-WebFace
 opt_enabled = 0
 opt_level = O2
 cropping = 0
 # 1 - True  0 - False
 pin_memory = 0
 # CrossEntropyLoss or MultiMarginLoss
-loss_func = MultiMarginLoss
+loss_func = CrossEntropyLoss
 
 image_size_mtcnn = 160
 margin_mtcnn = 0
