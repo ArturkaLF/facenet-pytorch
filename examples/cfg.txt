@@ -3,13 +3,13 @@ epochs = 15
 batch_size = 200
 training_name = test_2.1
 data_dir = /home/arthur/work/datasets/test_infer
-opt_enabled = 1
+opt_enabled = 0
 opt_level = O2
 cropping = 0
 # 1 - True  0 - False
 pin_memory = 0
 # CrossEntropyLoss or MultiMarginLoss
-loss_func = CrossEntropyLoss
+loss_func = MultiMarginLoss
 
 image_size_mtcnn = 160
 margin_mtcnn = 0
